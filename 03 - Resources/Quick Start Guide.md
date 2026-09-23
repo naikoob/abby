@@ -121,4 +121,5 @@ Keep your graph connected, links working, and frontmatter valid.
 
 ## Further Reading
 
+- [[Obsidian and Antigravity Workflow Guide|Obsidian & Antigravity Setup Guide]]: Recommended Obsidian settings, graph visualization, Dataview dashboards, and human-AI rhythm.
 - [`README.md`](../README.md): In-depth technical architecture, complete CLI command manual, OKF v0.2 schema definitions, and trust models.

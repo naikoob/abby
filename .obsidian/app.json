@@ -1,5 +1,9 @@
 {
   "newFileLocation": "folder",
   "newFileFolderPath": "00 - Inbox",
-  "attachmentFolderPath": "05 - Assets/Attachments"
+  "attachmentFolderPath": "05 - Assets/Attachments",
+  "userIgnoreFilters": [
+    ".system",
+    ".agents"
+  ]
 }
