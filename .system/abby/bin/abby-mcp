@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -e
+
+# Resolve the directory where this script lives
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PACKAGE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SRC_DIR="${PACKAGE_ROOT}/src"
+
+# Prepend package src to PYTHONPATH
+export PYTHONPATH="${SRC_DIR}${PYTHONPATH:+:${PYTHONPATH}}"
+
+# Execute abby mcp subcommand
+exec python3 -m abby.cli mcp "$@"
+
