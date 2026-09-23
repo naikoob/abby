@@ -31,17 +31,17 @@ Abby enforces a strict boundary between human-curated knowledge (`00`–`05`) an
 
 ### PARA+ Directory Taxonomy
 
-| Directory | Role & Lifecycle Constraints | Domain |
-| :--- | :--- | :--- |
-| `00 - Inbox/` | Fast note staging (`type: inbox`, `status: unprocessed`). All new notes enter here. | Knowledge Domain |
-| `01 - Projects/` | Time-bound initiatives with target outcomes (`type: project-note`, `status: active`). Distill to `03` before archiving. | Knowledge Domain |
-| `02 - Areas/` | Long-term ongoing responsibilities and operational domains (`type: area-note`, `status: active`). | Knowledge Domain |
-| `03 - Resources/` | Evergreen knowledge, atomic concepts, ADRs, and reference (`type: resource-note`, `status: evergreen`). | Knowledge Domain |
-| `04 - Archives/` | Completed projects, inactive areas, or retired raw notes (`type: archive-note`, `status: archived`). | Knowledge Domain |
-| `05 - Assets/` | Static attachments, diagrams, images, and starter templates (`05 - Assets/Templates/`). | Knowledge Domain |
-| `.system/` | Self-contained Python 3.10+ stdlib engine (`.system/abby/`), SQLite FTS5 cache (`.system/cache/`), and living architecture specs (`.system/specs/`). | System Domain |
-| `.agents/` | Consolidated workflow skills (`.agents/skills/`) and air-gapped subagents (`.agents/subagents/`). | System Domain |
-| `.obsidian/` | Obsidian client UI state and plugins. Treated as human-interface state. | System Domain |
+| Directory         | Role & Lifecycle Constraints                                                                                                                         | Domain           |
+| :---------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------- |
+| `00 - Inbox/`     | Fast note staging (`type: inbox`, `status: unprocessed`). All new notes enter here.                                                                  | Knowledge Domain |
+| `01 - Projects/`  | Time-bound initiatives with target outcomes (`type: project-note`, `status: active`). Distill to `03` before archiving.                              | Knowledge Domain |
+| `02 - Areas/`     | Long-term ongoing responsibilities and operational domains (`type: area-note`, `status: active`).                                                    | Knowledge Domain |
+| `03 - Resources/` | Evergreen knowledge, atomic concepts, ADRs, and reference (`type: resource-note`, `status: evergreen`).                                              | Knowledge Domain |
+| `04 - Archives/`  | Completed projects, inactive areas, or retired raw notes (`type: archive-note`, `status: archived`).                                                 | Knowledge Domain |
+| `05 - Assets/`    | Static attachments, diagrams, images, and starter templates (`05 - Assets/Templates/`).                                                              | Knowledge Domain |
+| `.system/`        | Self-contained Python 3.10+ stdlib engine (`.system/abby/`), SQLite FTS5 cache (`.system/cache/`), and living architecture specs (`.system/specs/`). | System Domain    |
+| `.agents/`        | Consolidated workflow skills (`.agents/skills/`) and air-gapped subagents (`.agents/subagents/`).                                                    | System Domain    |
+| `.obsidian/`      | Obsidian client UI state and plugins. Treated as human-interface state.                                                                              | System Domain    |
 
 ---
 

@@ -85,7 +85,7 @@ The `.obsidian/` directory is a deliberate third category: human-interface state
 
 ### 4.1 Layering
 
-`.system/abby/` — 75 modules, ~6,200 LOC, pure standard library, strictly unidirectional dependencies.
+`.system/abby/` — 75 modules, ~11,400 LOC (~9,500 SLOC), pure standard library, strictly unidirectional dependencies.
 
 ```mermaid
 flowchart TD
@@ -315,7 +315,7 @@ The trust model exists to answer one question at retrieval time: *how much shoul
 ```mermaid
 stateDiagram-v2
     [*] --> unverified: abby new / note_capture
-    unverified --> machine_confirmed: verify --by agent:synthesizer
+    unverified --> machine_confirmed: verify --by abby/agent:steward
     unverified --> human_reviewed: verify --by human:bookian
     machine_confirmed --> human_reviewed: verify --by human:bookian
     human_reviewed --> human_reviewed: re-verify (updates 'at')
@@ -418,7 +418,7 @@ The same pattern decomposed `build_search_sql` (match conditions / faceted filte
 
 ### 9.3 Test Architecture
 
-69 test files across `unit/` and `integration/`, executed by a parallel standard-library runner on 8 workers.
+65 test files across `unit/` and `integration/` (32 unit, 33 integration), executed by a parallel standard-library runner on 8 workers.
 
 ```
 .system/abby/bin/abby-test arch          # < 3s   AST gate
@@ -433,23 +433,22 @@ Non-negotiable properties: `tempfile.TemporaryDirectory` isolation with zero liv
 
 ## 10. Agent Orchestration
 
-### 10.1 Persona Model
+### 10.1 Subagent & Persona Model
 
-Four personas with disjoint write scopes, each with an explicit quality gate.
+Two air-gapped subagents with disjoint write scopes, coordinated by a versatile Root Conversational Agent. Earlier discrete personas (Vault Triage, Knowledge Synthesizer, Vault Curator) were consolidated into the unified **Knowledge Steward** subagent, pairing with the **Vault Technician** subagent across the Air-Gap boundary.
 
-| Persona | Write scope | Primary interface | Gate |
+| Role / Persona | Domain & Write scope | Primary playbook & interface | Threshold & Verification Gate |
 |---|---|---|---|
-| **Vault Technician** | `.system/`, tests | `abby doctor`, `abby cache`, `abby-test arch` | **Zero** mutations in `00`–`05` |
-| **Vault Curator** | `01`–`04` | `abby lint --fix`, `links refactor --dry-run`, `note_refactor` | Preserve links and anchors |
-| **Vault Triage** | `00` → `01`–`04` | `abby list inbox`, `abby move --description` | Author 15–35 word descriptions |
-| **Knowledge Synthesizer** | `03 - Resources/` | `abby new`, `note_capture`, `note_read`, `vault_links` | Maintain mesh connectivity and MOCs |
+| **Root Conversational Agent** | Knowledge Domain (`00`–`05`) for inline fast path | `vault_search` $\rightarrow$ `vault_links` $\rightarrow$ `note_read`, `note_capture` (`abby new`) | **Built-in Fast Path**: inline Q&A, single capture, $\le 2$ notes triage, 1 note curation. Cites claims with `[[Note Title#Anchor\|alias]]` |
+| **Knowledge Steward** ([`steward.md`](../../.agents/subagents/steward.md)) | Knowledge Domain (`00 - Inbox/` $\to$ `04 - Archives/`) | [`vault-synthesize`](../../.agents/skills/vault-synthesize/SKILL.md), [`vault-curate`](../../.agents/skills/vault-curate/SKILL.md), 12 MCP tools | **Gate**: `vault_lint(strict=True)` + `vault_links(mode="broken", headings=True)`. Dispatched for $\ge 3$ notes triage, brain dumps, or vault-wide curation. **Never** run `abby-test` |
+| **Vault Technician** ([`technician.md`](../../.agents/subagents/technician.md)) | System Domain (`.system/`, `.agents/`, `AGENTS.md`, `STYLE.md`, `README.md`, specs, tests) | [`vault-technician`](../../.agents/skills/vault-technician/SKILL.md), `abby doctor`, `abby cache`, `abby-test` | **Gate**: `abby-test arch` ($<3\text{s}$) + `abby-test all` ($<20\text{s}$) + `git status` (**Zero** live note mutations in `00`–`05`) |
 
-The Root Conversational Agent orchestrates and answers, but defers all mutation to these personas.
+The Root Conversational Agent orchestrates interactions, answers user queries, and performs single-note capture or lightweight operations directly inline without subagent invocation overhead. It delegates batch knowledge processing or system engineering to the respective subagents when thresholds are met.
 
 ### 10.2 Dual-Mode Execution
 
-- **Inline (skills)** — single-turn or interactive work: one capture, an ad-hoc search, triaging one or two notes. The root agent follows the `.agents/skills/*/SKILL.md` playbook directly, without subagent overhead.
-- **Delegated (subagents)** — multi-step or batch work: FIFO-processing an inbox queue, full-vault link curation, multi-note decomposition. Isolated via `invoke_subagent`.
+- **Inline (Fast Path & Skills)** — single-turn or interactive work: grounded Q&A via search and traversal, rapid single-note capture (`note_capture` / `abby new`), and lightweight operations ($\le 2$ notes triage or 1 note curation/refactor). The root agent follows the `.agents/skills/*/SKILL.md` playbook directly without subagent invocation overhead.
+- **Delegated (Subagents)** — multi-step, batch, or system-level work: FIFO-processing an inbox queue ($\ge 3$ notes), multi-concept brain dump decomposition, full-vault link curation, and project archival delegate to `steward.md`; all engine code, FTS5 cache migrations, MCP schema additions, and test suites delegate to `technician.md`. Isolated via `invoke_subagent`.
 
 ### 10.3 Instruction Layering
 
@@ -534,7 +533,7 @@ Honest accounting of where the design is unresolved.
 | **Air-gap scope ambiguity** | 015/016 assert zero mutation across `00`–`05`; 017 narrows to `00`–`04` to permit template edits | `00`–`05` is normative; `05 - Assets/Templates/` is the sole documented exception |
 | **Description enforcement asymmetry** | `description` is optional at capture but required for graduation — the burden shifts to the Knowledge Steward | Deliberate. Zero human capture friction is worth the agent obligation |
 | **No `abby triage` wizard** | Feature 002 deferred the interactive wizard for scriptable primitives | Still deferred. Composability has so far outweighed ergonomics |
-| **Metric drift across specs** | Module and test counts in historical plans no longer match reality (75 modules, 65 test files) | Counts are informational; only per-module LOC and CC are enforced |
+| **Metric drift across specs** | Module, test, and line counts in historical plans (e.g. 54/71 modules, 6,209 LOC) grew as the engine hardened (currently 75 modules, ~11,400 LOC, 65 test files) | Counts are informational; only per-module LOC and CC are enforced |
 | **`--stale` / `--fresh-only`** | Mutually contradictory when combined | Not currently rejected at the argument layer; effect is an empty result set |
 
 ---
